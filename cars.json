@@ -1,0 +1,17 @@
+[
+  {
+    "speed": 150,
+    "year": 2001,
+    "name": "Skoda Fabia"
+  },
+  {
+    "speed": 160,
+    "year": 2005,
+    "name": "Volkswagen passat"
+  },
+  {
+    "speed": 240,
+    "year": 2010,
+    "name": "Audi a5"
+  }
+]
