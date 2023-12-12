@@ -9,7 +9,7 @@ public class Main {
         JsonCarsReader jsonCarsReader = new JsonCarsReader();
         JsonCarParser jsonCarParser = new JsonCarParser();
 
-        String fileContent = jsonCarsReader.readFromFile("cars.json");
+        String fileContent = jsonCarsReader.readFromFile("JsonReaderPrometheus/cars.json");
         Car[] parsedCars = jsonCarParser.parseCars(fileContent);
 
         for (Car car : parsedCars) {
