@@ -4,8 +4,10 @@ import com.prometheus.json.reader.model.Car;
 import com.prometheus.json.reader.parser.JsonCarParser;
 import com.prometheus.json.reader.reader.JsonCarsReader;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
         JsonCarsReader jsonCarsReader = new JsonCarsReader();
         JsonCarParser jsonCarParser = new JsonCarParser();
 

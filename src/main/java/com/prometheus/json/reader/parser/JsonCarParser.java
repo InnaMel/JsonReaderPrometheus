@@ -2,7 +2,9 @@ package com.prometheus.json.reader.parser;
 
 import com.prometheus.json.reader.model.Car;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,7 +12,7 @@ public class JsonCarParser {
 
     String patternEachRecordPair = "\"[a-zA-Z]+\"\\:\s[\"[\\w\s]+\"]+";
 
-    public Car[] parseCars(String fileContent) {
+    public Car[] parseCars(String fileContent) throws InvocationTargetException, IllegalAccessException {
         //PUT YOUR CODE HERE
         fileContent = fileContent.replaceAll("\\[|\\]", "").trim();
         String[] splitFileContent = fileContent.split("\\},");
@@ -19,52 +21,83 @@ public class JsonCarParser {
         Car[] cars = new Car[splitFileContent.length];
 
         int i = 0;
-        for (String eachRcordCar : splitFileContent) {
-            cars[i] = parseCar(eachRcordCar);
+        for (String eachRecordCar : splitFileContent) {
+            cars[i] = parseCar(eachRecordCar);
         }
 
         return cars;
     }
 
-    private Car parseCar(String eachRcordCar) {
+    private Car parseCar(String eachRcordCar) throws InvocationTargetException, IllegalAccessException {
         Car currentCar = new Car();
         Pattern pattern = Pattern.compile(patternEachRecordPair);
         Matcher matcher = pattern.matcher(eachRcordCar);
 
+        Method[] setMethodsCarClass = getSetMethodsCarClass(currentCar);
+        String[] namesMethodsCarClass = getNamesMethodsCarClass(currentCar, setMethodsCarClass);
+
         while (matcher.find()) {
-//            System.out.println("*****");
-//            System.out.println(matcher.group());
             String[] parseKeyValueLine = parseToKeyValueLine(matcher.group());
-
-//            System.out.println();
-//            System.out.println();
-//            printArray(parseToKeyValueLine);
-
+            currentCar = mapKeyValue(currentCar, parseKeyValueLine, setMethodsCarClass, namesMethodsCarClass);
         }
-        String[] namesMethodsCarClass = getNamesMethodsCarClass(currentCar);
 
         return currentCar;
     }
 
-    // PUT YOUR CODE HERE
+    private Car mapKeyValue(
+            Car car,
+            String[] parseKeyValueLine,
+            Method[] setMethods,
+            String[] nameMethods) throws InvocationTargetException, IllegalAccessException {
 
-    private String[] getNamesMethodsCarClass(Car car) {
-        Method[] methodsCarClass = car.getClass().getMethods();
-        int capacityNameArray = 0;
-        for (Method method : methodsCarClass) {
-            if (method.getName().startsWith("set")) {
-                capacityNameArray++;
+        for (int i = 0; i < nameMethods.length; i++) {
+            if (parseKeyValueLine[0].equals(nameMethods[i])) {
+                try {
+                    setMethods[i].invoke(car, parseKeyValueLine[1]);
+                } catch (NullPointerException e) {
+                    System.out.println("Json has key with no Value! Fill the gap and try again later.");
+                    ;
+                } catch (Exception e) {
+                    int value = Integer.parseInt(parseKeyValueLine[1]);
+                    setMethods[i].invoke(car, value);
+                }
+                break;
             }
         }
-        String[] namesMethodsCarClass = new String[capacityNameArray];
 
-        int currentItemName = 0;
+        return car;
+    }
 
+    private Method[] getSetMethodsCarClass(Car car) {
+        int capacityNameArray = 0;
+        ArrayList<Integer> indexesSetMethod = new ArrayList<Integer>();
+        Method[] methodsCarClass = car.getClass().getMethods();
         for (int i = 0; i < methodsCarClass.length; i++) {
             if (methodsCarClass[i].getName().startsWith("set")) {
-                namesMethodsCarClass[currentItemName] = methodsCarClass[i].getName().substring(3).toLowerCase();
-                currentItemName++;
-                if (currentItemName == capacityNameArray) {
+                capacityNameArray++;
+                indexesSetMethod.add(i);
+            }
+        }
+        Method[] setMethodsCarClass = new Method[capacityNameArray];
+        for (int i = 0; i < setMethodsCarClass.length; i++) {
+            setMethodsCarClass[i] = methodsCarClass[indexesSetMethod.get(i)];
+        }
+
+        return setMethodsCarClass;
+    }
+
+    // PUT YOUR CODE HERE
+
+    private String[] getNamesMethodsCarClass(Car car, Method[] setMethods) {
+        String[] namesMethodsCarClass = new String[setMethods.length];
+        int quantityItemName = 0;
+
+//        for (int i = 0; i < setMethods.length; i++) {
+        for (Method setMethod : setMethods) {
+            if (setMethod.getName().startsWith("set")) {
+                namesMethodsCarClass[quantityItemName] = setMethod.getName().substring(3).toLowerCase();
+                quantityItemName++;
+                if (quantityItemName == setMethods.length) {
                     break;
                 }
             }
