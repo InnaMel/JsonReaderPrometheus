@@ -16,25 +16,27 @@ public class JsonCarParser {
         //PUT YOUR CODE HERE
         fileContent = fileContent.replaceAll("\\[|\\]", "").trim();
         String[] splitFileContent = fileContent.split("\\},");
-//        printArray(splitFileContent);
 
         Car[] cars = new Car[splitFileContent.length];
 
         int i = 0;
         for (String eachRecordCar : splitFileContent) {
             cars[i] = parseCar(eachRecordCar);
+            i++;
         }
 
         return cars;
     }
 
-    private Car parseCar(String eachRcordCar) throws InvocationTargetException, IllegalAccessException {
+    // PUT YOUR CODE HERE
+
+    private Car parseCar(String eachRecordCar) throws InvocationTargetException, IllegalAccessException {
         Car currentCar = new Car();
         Pattern pattern = Pattern.compile(patternEachRecordPair);
-        Matcher matcher = pattern.matcher(eachRcordCar);
+        Matcher matcher = pattern.matcher(eachRecordCar);
 
         Method[] setMethodsCarClass = getSetMethodsCarClass(currentCar);
-        String[] namesMethodsCarClass = getNamesMethodsCarClass(currentCar, setMethodsCarClass);
+        String[] namesMethodsCarClass = getNamesMethodsCarClass(setMethodsCarClass);
 
         while (matcher.find()) {
             String[] parseKeyValueLine = parseToKeyValueLine(matcher.group());
@@ -56,7 +58,6 @@ public class JsonCarParser {
                     setMethods[i].invoke(car, parseKeyValueLine[1]);
                 } catch (NullPointerException e) {
                     System.out.println("Json has key with no Value! Fill the gap and try again later.");
-                    ;
                 } catch (Exception e) {
                     int value = Integer.parseInt(parseKeyValueLine[1]);
                     setMethods[i].invoke(car, value);
@@ -86,23 +87,18 @@ public class JsonCarParser {
         return setMethodsCarClass;
     }
 
-    // PUT YOUR CODE HERE
-
-    private String[] getNamesMethodsCarClass(Car car, Method[] setMethods) {
+    private String[] getNamesMethodsCarClass(Method[] setMethods) {
         String[] namesMethodsCarClass = new String[setMethods.length];
         int quantityItemName = 0;
 
-//        for (int i = 0; i < setMethods.length; i++) {
         for (Method setMethod : setMethods) {
-            if (setMethod.getName().startsWith("set")) {
-                namesMethodsCarClass[quantityItemName] = setMethod.getName().substring(3).toLowerCase();
-                quantityItemName++;
-                if (quantityItemName == setMethods.length) {
-                    break;
-                }
+            namesMethodsCarClass[quantityItemName] = setMethod.getName().substring(3).toLowerCase();
+            quantityItemName++;
+            if (quantityItemName == setMethods.length) {
+                break;
             }
+
         }
-        printArray(namesMethodsCarClass);
 
         return namesMethodsCarClass;
     }
@@ -115,12 +111,5 @@ public class JsonCarParser {
             parsedLine[i] = parsedLine[i].trim();
         }
         return parsedLine;
-    }
-
-    private void printArray(String[] strArr) {
-        for (String each : strArr) {
-//            System.out.println("---------------------");
-            System.out.print(each + ",");
-        }
     }
 }
